@@ -8,6 +8,8 @@ kvetoucí sakurou, lucernami a animovanou červenou pandou.
   Když se dlouho nic neděje, usne 💤.
 - Efekty myši: světlo a jiskry za kurzorem, lístky sakury uhýbají pohybu myši,
   klik do scény vyfoukne lístky, světlušky letí za kurzorem, paralaxa vrstev, náklon karet.
+- Vpravo dole přepínač **den/noc** a **počasí** (slunečno/jasno → déšť → mlha). Déšť má kapky,
+  cákance a v noci i blesky, mlha pomalu plující pásy. Volba se pamatuje v prohlížeči.
 - Tlačítko „Spawn ball" vpravo dole vyhodí plážový míček – jde chytit a hodit myší/prstem,
   odráží se od země, od ostatních míčků i od pandy (✕ míčky smaže).
 - Tlačítko „effects" v patičce vypne náročnější efekty (pro slabší zařízení).
@@ -23,6 +25,7 @@ public/              ← to, co se nasazuje
   js/scene.js        ← pixel-art scéna, světla, částice
   js/panda.js        ← sprite červené pandy
   js/ball.js         ← míčky a jejich fyzika
+  js/icons.js        ← pixelové ikonky tlačítek den/noc a počasí
   js/util.js         ← pomocné funkce
   assets/            ← fonty, kurzory
   _headers           ← HTTP hlavičky pro Cloudflare Pages

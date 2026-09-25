@@ -1,15 +1,27 @@
 import { Scene } from './scene.js';
+import { ICONS } from './icons.js';
 
 const $ = (s) => document.querySelector(s);
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
 
-// --- uložená volba efektů (jen pohodlí, nemusí fungovat) ---
+// --- uložené volby (jen pohodlí, nemusí fungovat) ---
+const load = (k) => {
+  try {
+    return localStorage.getItem(k);
+  } catch {
+    return null;
+  }
+};
+const save = (k, v) => {
+  try {
+    localStorage.setItem(k, v);
+  } catch {}
+};
 let fxOn = !motionQuery.matches;
-try {
-  const v = localStorage.getItem('fx');
-  if (v === '0') fxOn = false;
-  if (v === '1') fxOn = true;
-} catch {}
+if (load('fx') === '0') fxOn = false;
+if (load('fx') === '1') fxOn = true;
+let time = load('time') === 'day' ? 'day' : 'night';
+let weather = ['clear', 'rain', 'fog'].includes(load('weather')) ? load('weather') : 'clear';
 
 // --- bublina pandy ---
 const bubble = $('#bubble');
@@ -22,7 +34,7 @@ const LINES = {
     'Check out my YouTube! 🎬',
     'Join Slime SMP! 🟩',
     pet,
-    'The sakura smell lovely tonight 🌸',
+    'The sakura smell lovely 🌸',
     'Mmm… some bamboo would be nice 🎋',
     'Click me! ✨',
     'Try clicking the sky ✨',
@@ -34,6 +46,12 @@ const LINES = {
   wake: ["Huh?! I'm awake! 👀", 'Yay, a visitor! 🌸'],
   ball: ['Boing! 🏐', 'Nice throw! ✨', 'Hey! 😆', 'Again, again! 🐾', 'My head! 😵'],
   sleep: ['Zzz… 💤'],
+  day: ['Good morning! ☀️', 'Rise and shine! 🌸'],
+  night: ['Good night… 🌙', 'Look at the stars ✨'],
+  sunny: ['What a sunny day! ☀️'],
+  clear: ['Clear skies tonight ✨'],
+  rain: ["Brr, it's raining! ☔", 'Splish splash! 🌧️'],
+  fog: ['So foggy… 🌫️', 'Where did everyone go? 🌫️'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 let bubbleTimer = 0;
@@ -53,6 +71,8 @@ function say(text, ms = 2600) {
 // --- scéna ---
 const scene = new Scene($('#scene'), $('#bloom'), {
   reduced: !fxOn,
+  time,
+  weather,
   bubble,
   onPanda: (ev) => {
     if (ev === 'boop') say(pick(LINES.boop), 1600);
@@ -73,9 +93,7 @@ function setFx(on) {
 setFx(fxOn);
 $('#fx-toggle').addEventListener('click', () => {
   setFx(!fxOn);
-  try {
-    localStorage.setItem('fx', fxOn ? '1' : '0');
-  } catch {}
+  save('fx', fxOn ? '1' : '0');
 });
 
 // --- vstupy ---
@@ -152,6 +170,42 @@ function frame(now) {
 requestAnimationFrame(frame);
 setTimeout(() => say(pick(LINES.hello), 3200), 1400);
 lastSay = performance.now();
+
+// --- den/noc a počasí ---
+const timeBtn = $('#time-btn');
+const weatherBtn = $('#weather-btn');
+const themeColor = document.querySelector('meta[name="theme-color"]');
+const WEATHER_NEXT = { clear: 'rain', rain: 'fog', fog: 'clear' };
+const weatherName = (w) => (w === 'rain' ? 'Rainy' : w === 'fog' ? 'Foggy' : time === 'day' ? 'Sunny' : 'Clear');
+function renderTheme() {
+  document.body.classList.toggle('day', time === 'day');
+  themeColor.setAttribute('content', time === 'day' ? '#4a8ee6' : '#140f2e');
+  const tName = time === 'day' ? 'Day' : 'Night';
+  timeBtn.querySelector('.ico-slot').innerHTML = time === 'day' ? ICONS.sun : ICONS.moon;
+  timeBtn.querySelector('.lbl').textContent = tName;
+  timeBtn.title = `${tName} – switch to ${time === 'day' ? 'night' : 'day'}`;
+  timeBtn.setAttribute('aria-label', timeBtn.title);
+  const wName = weatherName(weather);
+  weatherBtn.querySelector('.ico-slot').innerHTML = ICONS[weather];
+  weatherBtn.querySelector('.lbl').textContent = wName;
+  weatherBtn.title = `${wName} – change weather`;
+  weatherBtn.setAttribute('aria-label', weatherBtn.title);
+}
+renderTheme();
+timeBtn.addEventListener('click', () => {
+  time = time === 'day' ? 'night' : 'day';
+  scene.setTheme(time, weather);
+  renderTheme();
+  save('time', time);
+  say(pick(LINES[time]), 2200);
+});
+weatherBtn.addEventListener('click', () => {
+  weather = WEATHER_NEXT[weather];
+  scene.setTheme(time, weather);
+  renderTheme();
+  save('weather', weather);
+  say(pick(weather === 'clear' ? LINES[time === 'day' ? 'sunny' : 'clear'] : LINES[weather]), 2200);
+});
 
 // --- míčky ---
 const ballBtn = $('#ball-btn');

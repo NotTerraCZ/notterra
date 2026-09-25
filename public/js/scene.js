@@ -8,20 +8,82 @@ import { Balls } from './ball.js';
 const M = 12; // okraj vrstev kvůli paralaxe (v herních pixelech)
 const C = (h) => hex(h);
 
-const SKY = [
-  [0.0, '#090716'],
-  [0.2, '#141032'],
-  [0.38, '#261850'],
-  [0.54, '#432064'],
-  [0.67, '#6e2a6f'],
-  [0.78, '#a3427a'],
-  [0.87, '#d4677c'],
-  [0.94, '#f39284'],
-  [1.0, '#ffb68e'],
-];
-
 const PETAL = ['#ffd3e2', '#ffadc9', '#f58bb2', '#ffe8f0'].map(C);
-const BLOSSOM = ['#7b2b63', '#b24a82', '#e0729f', '#fca4c3', '#ffd2e3'].map(C);
+
+// ---------------------------------------------------------------------------
+// Palety pro noc a den. Počasí (déšť, mlha) se přidává až při kreslení.
+
+const PALETTES = {
+  night: {
+    sky: [[0.0, '#090716'], [0.2, '#141032'], [0.38, '#261850'], [0.54, '#432064'], [0.67, '#6e2a6f'], [0.78, '#a3427a'], [0.87, '#d4677c'], [0.94, '#f39284'], [1.0, '#ffb68e']],
+    skyRain: [[0.0, '#07070f'], [0.3, '#12121f'], [0.55, '#1e1c2e'], [0.75, '#2c283d'], [0.9, '#3b3249'], [1.0, '#4a3c52']],
+    halo: '#f6b9d8',
+    stars: true,
+    cloud: ['#b389bd', '#825a99', '#4e2e6a', '#98466f'],
+    cloudRain: ['#4f4863', '#3c3652', '#26233a', '#322c45'],
+    fuji: ['#4d3b7a', '#33275c', '#7a3d80', '#f1e6fb', '#b3a1d6', '#7d6aa8'],
+    rangeA: ['#2b204f', '#3e2f6c', '#5a2c6b'],
+    mistFar: '#c47aac',
+    hills: ['#1b1533', '#35295c', '#171129', '#2e2452'],
+    mistHills: '#b06a9e',
+    wall: ['#9a8cb0', '#76688f', '#bcaed2', '#2a2342', '#6c5f92', '#3a2432'],
+    midGround: ['#1b2530', '#27333f'],
+    lamp: ['#5d5570', '#7c7392', '#ffcf7a'],
+    pagoda: {
+      stone: '#5c5470', stoneL: '#827a99', stoneD: '#3a3448',
+      wall: '#a2332c', wallL: '#c24a38', wallD: '#6a1e1e', beam: '#d0a060',
+      roof: '#2d2645', roof2: '#3a3259', roofHi: '#7d71a6', fascia: '#18132a', under: '#3b1e28',
+      gold: '#e8b450', goldD: '#94692c', glow: '#ffc873', glowHi: '#fff0bf', lattice: '#b36a2c',
+    },
+    grass: ['#4a6b55', '#2c4238', '#20322d', '#172421', '#0f1817'],
+    blade: ['#3d5e4b', '#1a2a26'],
+    path: ['#7a7493', '#57516d', '#393449', '#0e1414'],
+    blossom: ['#7b2b63', '#b24a82', '#e0729f', '#fca4c3', '#ffd2e3'],
+    blossomHi: '#fff1f6',
+    bark: ['#1d1016', '#35202a', '#4f3140', '#6d4a57'],
+    treeOut: '#150b12',
+    toro: ['#6a6380', '#918aa8', '#433d55', '#1a1622', '#ffcf73', '#fff1c4'],
+    front: ['#0a100f', '#111a18'],
+    chochin: ['#2a1616', '#d8452f', '#ff8a4f', '#ffb36a', '#9e2a1e', '#ffd24a'],
+    fog: [90, 74, 120],
+    lightK: 1,
+  },
+  day: {
+    sky: [[0.0, '#2c64c8'], [0.3, '#4a8ee6'], [0.55, '#78b4f2'], [0.75, '#a9d2f7'], [0.9, '#d8ebf6'], [1.0, '#fbe7cf']],
+    skyRain: [[0.0, '#4a5566'], [0.35, '#5d6878'], [0.65, '#76808e'], [0.85, '#8e97a3'], [1.0, '#a7aeb7']],
+    halo: '#fff4cf',
+    stars: false,
+    cloud: ['#ffffff', '#f4f7fc', '#e1e9f4', '#bccadd'],
+    cloudRain: ['#b6bec9', '#9ea7b4', '#838d9c', '#6d7786'],
+    fuji: ['#7593cb', '#5b78b2', '#bcd4ef', '#ffffff', '#dde7f6', '#b3c3de'],
+    rangeA: ['#7f99c6', '#95aed6', '#c2d7ee'],
+    mistFar: '#f4f8ff',
+    hills: ['#4f7f6c', '#6c9d84', '#436f5f', '#5f8f78'],
+    mistHills: '#e8f1f4',
+    wall: ['#f1e9e8', '#d3c6cb', '#ffffff', '#3d3c5c', '#8a8fba', '#5c3a3a'],
+    midGround: ['#4f8a4a', '#69a45d'],
+    lamp: ['#8f8b9f', '#b3afc3', '#e9dcc0'],
+    pagoda: {
+      stone: '#8f8da3', stoneL: '#b6b4c9', stoneD: '#6c6a80',
+      wall: '#cc4034', wallL: '#e45c43', wallD: '#8f2b25', beam: '#ebbb6c',
+      roof: '#35375b', roof2: '#454a72', roofHi: '#a2a8d2', fascia: '#23253c', under: '#5c2e31',
+      gold: '#f2c452', goldD: '#a97c31', glow: '#6e3c2c', glowHi: '#8a4d36', lattice: '#caa06a',
+    },
+    grass: ['#a4d673', '#79b85a', '#63a24c', '#508a40', '#407334'],
+    blade: ['#8dca6a', '#4c813c'],
+    path: ['#cbc8d8', '#a3a0b5', '#7e7b92', '#3f5e38'],
+    blossom: ['#c4457c', '#e46c9d', '#f794ba', '#ffbfd5', '#ffe6ef'],
+    blossomHi: '#ffffff',
+    bark: ['#33201f', '#553737', '#77504f', '#986e6b'],
+    treeOut: '#2a1a20',
+    toro: ['#a29eb2', '#c9c5d7', '#7c788e', '#3a3448', '#5a4034', '#7a5444'],
+    front: ['#2c5a2a', '#3d6e36'],
+    chochin: ['#2a1616', '#c53b2b', '#d6523a', '#e46d45', '#8e2a1e', '#e8b440'],
+    fog: [226, 231, 238],
+    lightK: 0.12,
+  },
+};
+let PAL = PALETTES.night;
 
 // ---------------------------------------------------------------------------
 // Rozvržení podle poměru stran
@@ -46,10 +108,11 @@ function layout(W, H) {
 // ---------------------------------------------------------------------------
 // Obloha
 
-function genSky(L) {
+function genSky(L, weather) {
   const { W, H, groundY, moon } = L;
   const P = new Pix(W, H);
-  const stops = SKY.map(([p, c]) => [p, C(c)]);
+  const rain = weather === 'rain', fog = weather === 'fog';
+  const stops = (rain ? PAL.skyRain : PAL.sky).map(([p, c]) => [p, fog ? mixc(C(c), PAL.fog, 0.35) : C(c)]);
   const skyAt = (t) => {
     let i = 0;
     while (i < stops.length - 2 && t > stops[i + 1][0]) i++;
@@ -60,8 +123,10 @@ function genSky(L) {
   const n = Math.max(12, Math.round(horizon / 6));
   const levels = [];
   for (let k = 0; k < n; k++) levels.push(skyAt(k / (n - 1)).map(Math.round));
-  const halo = C('#f6b9d8');
-  const Rh = moon.r * 4.2;
+  const halo = C(PAL.halo);
+  const day = !PAL.stars;
+  const Rh = moon.r * (day ? 5.5 : 4.2);
+  const haloK = rain ? 0 : day ? 0.75 : 0.5;
   for (let y = 0; y < H; y++) {
     const t = clamp(y / horizon, 0, 1);
     const f = t * (n - 1);
@@ -70,15 +135,17 @@ function genSky(L) {
     for (let x = 0; x < W; x++) {
       let c = u > bayer(x, y) ? levels[i + 1] : levels[i];
       const d = Math.hypot(x - moon.x, y - moon.y);
-      if (d < Rh) {
-        const g = Math.pow(1 - (d - moon.r) / (Rh - moon.r), 1.7) * 0.5;
+      if (d < Rh && haloK > 0) {
+        const g = Math.pow(1 - (d - moon.r) / (Rh - moon.r), 1.7) * haloK;
         const q = Math.floor(g * 7 + bayer(x + 1, y + 2)) / 7;
-        if (q > 0) c = mixc(c, halo, Math.min(q, 0.55));
+        if (q > 0) c = mixc(c, halo, Math.min(q, day ? 0.7 : 0.55));
       }
       P.set(x, y, c);
     }
   }
   // statické hvězdy
+  if (!PAL.stars || rain) return P.canvas();
+  const starK = fog ? 0.35 : 1;
   const r = rng(7);
   const count = Math.round((W * H) / 260);
   const starCols = ['#ffffff', '#f3e8ff', '#ffe9c9', '#d9e4ff'].map(C);
@@ -86,7 +153,7 @@ function genSky(L) {
     const x = Math.floor(r() * W);
     const y = Math.floor(Math.pow(r(), 1.5) * horizon * 0.72);
     const fade = 1 - y / (horizon * 0.72);
-    P.set(x, y, starCols[k % 4], (0.25 + r() * 0.6) * fade);
+    P.set(x, y, starCols[k % 4], (0.25 + r() * 0.6) * fade * starK);
   }
   return P.canvas();
 }
@@ -131,7 +198,22 @@ function genMoon(R) {
   return P.canvas();
 }
 
-function genCloud(r, w) {
+function genSun(R) {
+  const S = R * 2 + 3;
+  const P = new Pix(S, S);
+  const c0 = C('#fffdf0'), c1 = C('#fff3c0'), c2 = C('#ffe58a');
+  const cx = R + 1, cy = R + 1;
+  for (let y = 0; y < S; y++)
+    for (let x = 0; x < S; x++) {
+      const d = Math.hypot(x - cx, y - cy);
+      if (d > R + 0.3) continue;
+      const e = d / R;
+      P.set(x, y, e > 0.86 ? c2 : e > 0.62 && bayer(x, y) > 0.35 ? c1 : c0);
+    }
+  return P.canvas();
+}
+
+function genCloud(r, w, cols) {
   const h = Math.round(w * 0.32) + 6;
   const P = new Pix(w, h);
   const base = h - 2;
@@ -143,7 +225,7 @@ function genCloud(r, w) {
     blobs.push([x, base - rad * 0.55, rad]);
   }
   const inside = (x, y) => y <= base && blobs.some(([bx, by, br]) => (x - bx) ** 2 + (y - by) ** 2 <= br * br);
-  const top = C('#b389bd'), top2 = C('#825a99'), mid = C('#4e2e6a'), bot = C('#98466f');
+  const [top, top2, mid, bot] = cols.map(C);
   for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       if (!inside(x, y)) continue;
@@ -166,8 +248,7 @@ function genFar(L) {
   const fb = groundY - 2;
   const fh = Math.round(H * (L.portrait ? 0.24 : 0.36));
   const half = fh * 2.05;
-  const bodyLit = C('#4d3b7a'), bodyShade = C('#33275c'), haze = C('#7a3d80');
-  const snowLit = C('#f1e6fb'), snowShade = C('#b3a1d6'), snowDim = C('#7d6aa8');
+  const [bodyLit, bodyShade, haze, snowLit, snowShade, snowDim] = PAL.fuji.map(C);
   for (let x = -M; x < W + M; x++) {
     const d = Math.abs(x - fuji.x);
     if (d > half) continue;
@@ -188,7 +269,7 @@ function genFar(L) {
     }
   }
   // vzdálené hřebeny
-  const rA = C('#2b204f'), rAl = C('#3e2f6c'), hazeA = C('#5a2c6b');
+  const [rA, rAl, hazeA] = PAL.rangeA.map(C);
   for (let x = -M; x < W + M; x++) {
     const yv = groundY - H * 0.1 - fbm1(x * 0.018, 21) * H * 0.12;
     const yn = groundY - H * 0.1 - fbm1((x + 1) * 0.018, 21) * H * 0.12;
@@ -202,7 +283,7 @@ function genFar(L) {
     }
   }
   // mlha
-  mist(P, L, groundY - H * 0.06, H * 0.055, C('#c47aac'), 0.34, -M, W + M);
+  mist(P, L, groundY - H * 0.06, H * 0.055, C(PAL.mistFar), 0.34, -M, W + M);
   return P.canvas();
 }
 
@@ -220,7 +301,7 @@ function mist(P, L, cy, hw, col, amp, x0, x1) {
 function genHills(L) {
   const { W, H, groundY } = L;
   const P = new Pix(W + 2 * M, H + 2 * M, M, M);
-  const base = C('#1b1533'), rim = C('#35295c'), tree = C('#171129'), treeRim = C('#2e2452');
+  const [base, rim, tree, treeRim] = PAL.hills.map(C);
   const r = rng(99);
   const ridge = new Float32Array(W + 2 * M);
   for (let x = -M; x < W + M; x++) ridge[x + M] = groundY - H * 0.035 - fbm1(x * 0.03, 77) * H * 0.07;
@@ -239,7 +320,7 @@ function genHills(L) {
     }
     x += 2 + Math.floor(r() * 6);
   }
-  mist(P, L, groundY - H * 0.012, H * 0.03, C('#b06a9e'), 0.28, -M, W + M);
+  mist(P, L, groundY - H * 0.012, H * 0.03, C(PAL.mistHills), 0.28, -M, W + M);
   return P.canvas();
 }
 
@@ -254,7 +335,7 @@ function genMid(L, lights) {
   // zadní zeď areálu
   const wallBot = groundY - 3, wallH = 8 * s;
   const wx0 = px - Math.round(W * 0.28), wx1 = px + Math.round(W * 0.24);
-  const plaster = C('#9a8cb0'), plasterD = C('#76688f'), line = C('#bcaed2'), cap = C('#2a2342'), capHi = C('#6c5f92'), post = C('#3a2432');
+  const [plaster, plasterD, line, cap, capHi, post] = PAL.wall.map(C);
   for (let x = wx0; x <= wx1; x++) {
     for (let y = wallBot - wallH; y <= wallBot; y++) {
       const ry = y - (wallBot - wallH);
@@ -272,7 +353,7 @@ function genMid(L, lights) {
     P.set(ex, wallBot - wallH - 2, cap);
   }
   // pás trávy za zdí/před zdí
-  const midG = C('#1b2530'), midGt = C('#27333f');
+  const [midG, midGt] = PAL.midGround.map(C);
   for (let x = -M; x < W + M; x++)
     for (let y = wallBot + 1; y <= groundY + M; y++) P.set(x, y, y === wallBot + 1 ? midGt : midG);
 
@@ -281,10 +362,10 @@ function genMid(L, lights) {
   // malé kamenné lucerny u pagody
   for (const dx of [-30 * s, 30 * s]) {
     const lx = px + dx, ly = groundY - 1;
-    const st = C('#5d5570'), stL = C('#7c7392');
+    const [st, stL, lampGlow] = PAL.lamp.map(C);
     P.rect(lx - 1, ly - 2, 3, 2, st);
     P.rect(lx, ly - 5, 1, 3, st);
-    P.rect(lx - 1, ly - 7, 3, 2, C('#ffcf7a'));
+    P.rect(lx - 1, ly - 7, 3, 2, lampGlow);
     P.rect(lx - 2, ly - 8, 5, 1, stL);
     P.set(lx, ly - 9, stL);
     lights.push({ x: lx, y: ly - 6, r: 10, col: 'warm', a: 0.5, layer: 'mid', core: 2 });
@@ -293,11 +374,8 @@ function genMid(L, lights) {
 }
 
 function drawPagoda(P, cx, baseY, s, lights) {
-  const stone = C('#5c5470'), stoneL = C('#827a99'), stoneD = C('#3a3448');
-  const wall = C('#a2332c'), wallL = C('#c24a38'), wallD = C('#6a1e1e'), beam = C('#d0a060');
-  const roof = C('#2d2645'), roof2 = C('#3a3259'), roofHi = C('#7d71a6'), fascia = C('#18132a'), under = C('#3b1e28');
-  const gold = C('#e8b450'), goldD = C('#94692c');
-  const glow = C('#ffc873'), glowHi = C('#fff0bf'), lattice = C('#b36a2c');
+  const K = Object.fromEntries(Object.entries(PAL.pagoda).map(([k, v]) => [k, C(v)]));
+  const { stone, stoneL, stoneD, wall, wallL, wallD, beam, roof, roof2, roofHi, fascia, under, gold, goldD, glow, glowHi, lattice } = K;
 
   // kamenná podesta
   const bw = 46 * s, bh = 4 * s;
@@ -419,7 +497,7 @@ function genNear(L, lights, canopy) {
   const r = rng(1234);
 
   // zem
-  const gTip = C('#4a6b55'), g1 = C('#2c4238'), g2 = C('#20322d'), g3 = C('#172421'), g4 = C('#0f1817');
+  const [gTip, g1, g2, g3, g4] = PAL.grass.map(C);
   for (let x = -M; x < W + M; x++) {
     const bump = Math.round((fbm1(x * 0.15, 8) - 0.5) * 3);
     const tuft = hash2(x, 0, 12) > 0.8 ? 1 + Math.floor(hash2(x, 1, 12) * 2) : 0;
@@ -439,12 +517,12 @@ function genNear(L, lights, canopy) {
     const x = Math.floor(r() * (W + 2 * M)) - M;
     const y = groundY + 3 + Math.floor(r() * (H - groundY));
     const d = (y - groundY) / (H - groundY);
-    const c = mixc(C('#3d5e4b'), C('#1a2a26'), d);
+    const c = mixc(C(PAL.blade[0]), C(PAL.blade[1]), d);
     P.set(x, y, c);
     P.set(x + (r() < 0.5 ? -1 : 1), y - 1, c);
   }
   // kamenná cesta k pagodě
-  const stL = C('#7a7493'), st = C('#57516d'), stD = C('#393449'), stSh = C('#0e1414');
+  const [stL, st, stD, stSh] = PAL.path.map(C);
   const px0 = L.pagoda.x, py0 = groundY + 1;
   const px1 = L.portrait ? L.W * 0.46 : L.W * 0.52, py1 = H + 4;
   for (let k = 0; k < 7; k++) {
@@ -535,6 +613,7 @@ function genNear(L, lights, canopy) {
     minY = Math.min(minY, b[1] - b[2]);
     maxY = Math.max(maxY, b[1] + b[2]);
   }
+  const BLOSSOM = PAL.blossom.map(C);
   const drawBlob = (T, bx, by, rad, back) => {
     for (let yy = Math.floor(by - rad - 2); yy <= Math.ceil(by + rad + 2); yy++)
       for (let xx = Math.floor(bx - rad - 2); xx <= Math.ceil(bx + rad + 2); xx++) {
@@ -551,13 +630,13 @@ function genNear(L, lights, canopy) {
         if (back) l -= 0.55;
         const idx = l > 0.62 ? 4 : l > 0.25 ? 3 : l > -0.12 ? 2 : l > -0.5 ? 1 : 0;
         T.set(xx, yy, BLOSSOM[idx]);
-        if (idx >= 3 && hash2(xx, yy, 23) > 0.93) T.set(xx, yy, C('#fff1f6'));
+        if (idx >= 3 && hash2(xx, yy, 23) > 0.93) T.set(xx, yy, C(PAL.blossomHi));
       }
   };
   for (const [bx, by, rad] of blobs) drawBlob(tree, bx + 2, by + 2, rad * 1.05, true);
 
   // větve a kmen
-  const bark = [C('#1d1016'), C('#35202a'), C('#4f3140'), C('#6d4a57')];
+  const bark = PAL.bark.map(C);
   for (const [sx, sy, sr] of segs) {
     for (let yy = Math.floor(sy - sr); yy <= Math.ceil(sy + sr); yy++)
       for (let xx = Math.floor(sx - sr); xx <= Math.ceil(sx + sr); xx++) {
@@ -571,7 +650,7 @@ function genNear(L, lights, canopy) {
   }
   // přední květy
   for (const [bx, by, rad] of blobs) drawBlob(tree, bx, by, rad, false);
-  tree.outline(C('#150b12'));
+  tree.outline(C(PAL.treeOut));
   canopy.push(...blobs.map(([bx, by, rad]) => ({ x: bx, y: by, r: rad })));
   // místa pro visící lucerny
   canopy.hang = [];
@@ -595,8 +674,7 @@ function genNear(L, lights, canopy) {
 }
 
 function drawToro(P, x, y, lights) {
-  const st = C('#6a6380'), stL = C('#918aa8'), stD = C('#433d55'), out = C('#1a1622');
-  const glow = C('#ffcf73'), glowHi = C('#fff1c4');
+  const [st, stL, stD, out, glow, glowHi] = PAL.toro.map(C);
   const rows = [
     // [dy, halfWidth, color]
     [0, 6, stD], [-1, 6, st], [-2, 5, stL],
@@ -626,10 +704,29 @@ function drawToro(P, x, y, lights) {
 function genFront(L) {
   const { W, H } = L;
   const P = new Pix(W + 2 * M, H + 2 * M, M, M);
-  const c = C('#0a100f'), c2 = C('#111a18');
+  const [c, c2] = PAL.front.map(C);
   for (let x = -M; x < W + M; x++) {
     const h = Math.round(3 + fbm1(x * 0.08, 44) * 7 + (hash2(x, 2, 4) > 0.86 ? 4 + hash2(x, 3, 4) * 7 : 0));
     for (let y = H - h; y <= H + M; y++) P.set(x, y, y === H - h ? c2 : c);
+  }
+  return P.canvas();
+}
+
+// Pás mlhy – horizontálně bezešvá textura (periodické siny), barva podle palety.
+function genFogBand(w, h, seed) {
+  const P = new Pix(w, h);
+  const col = PAL.fog;
+  const r = rng(seed);
+  const ph = [r() * 6.28, r() * 6.28, r() * 6.28, r() * 6.28];
+  for (let x = 0; x < w; x++) {
+    const u = (x / w) * Math.PI * 2;
+    const a = 0.55 + 0.22 * Math.sin(u * 2 + ph[0]) + 0.14 * Math.sin(u * 5 + ph[1]) + 0.09 * Math.sin(u * 11 + ph[2]);
+    const top = h * (0.25 + 0.2 * Math.sin(u * 3 + ph[3]));
+    for (let y = 0; y < h; y++) {
+      const v = y < top ? (y / top) : 1 - ((y - top) / (h - top)) * 0.35;
+      const q = Math.floor(a * v * 6 + bayer(x, y)) / 6;
+      if (q > 0) P.set(x, y, col, q * 0.85);
+    }
   }
   return P.canvas();
 }
@@ -680,6 +777,14 @@ export class Scene {
     this.fx = { sparks: [], bursts: [], hearts: [], zs: [], shoot: null, nextShoot: 6 };
     this.balls = new Balls(this);
     this.nearOff = { x: 0, y: 0 };
+    this.time = opts.time === 'day' ? 'day' : 'night';
+    this.weather = ['clear', 'rain', 'fog'].includes(opts.weather) ? opts.weather : 'clear';
+    this.terrain = new Map();
+    this.drops = [];
+    this.splashes = [];
+    this.flash = 0;
+    this.nextFlash = 5;
+    this.fade = null;
     this.pstate = {
       bob: 0, tail: 0, eye: 'open', lx: 0, ly: 0, ear: '', blush: false, mouth: 'w',
       nextBlink: 2, blinkT: 0, earT: 0, nextEar: 5, jump: 0, jumpV: 0, happyT: 0, sleep: false,
@@ -715,28 +820,92 @@ export class Scene {
   }
 
   build(L) {
+    if (!this.L || this.L.W !== L.W || this.L.H !== L.H) this.terrain.clear();
     this.L = L;
-    const lights = [];
-    const canopy = [];
-    this.sky = genSky(L);
-    this.moonCv = genMoon(L.moon.r);
-    this.far = genFar(L);
-    this.hills = genHills(L);
-    this.mid = genMid(L, lights);
-    this.near = genNear(L, lights, canopy);
-    this.front = genFront(L);
-    this.lights = lights;
-    this.canopy = canopy;
-    this.hang = (canopy.hang || []).map(([x, y], k) => ({ x, y, len: 7 + k * 5, ph: k * 1.7 }));
+    PAL = PALETTES[this.time];
+    // krajina se pro den i noc generuje jen jednou a pak se bere z cache
+    let T = this.terrain.get(this.time);
+    if (!T) {
+      const lights = [];
+      const canopy = [];
+      T = { far: genFar(L), hills: genHills(L), mid: genMid(L, lights), near: genNear(L, lights, canopy), front: genFront(L), lights, canopy };
+      this.terrain.set(this.time, T);
+    }
+    this.far = T.far;
+    this.hills = T.hills;
+    this.mid = T.mid;
+    this.near = T.near;
+    this.front = T.front;
+    this.lights = T.lights;
+    this.canopy = T.canopy;
+    this.hang = (T.canopy.hang || []).map(([x, y], k) => ({ x, y, len: 7 + k * 5, ph: k * 1.7 }));
+    this.buildSky();
+    this.initParticles();
+  }
+
+  // obloha, slunce/měsíc, mraky a mlha – závisí na denní době i počasí
+  buildSky() {
+    const L = this.L;
+    PAL = PALETTES[this.time];
+    const rain = this.weather === 'rain';
+    this.sky = genSky(L, this.weather);
+    this.moonCv = this.time === 'day' ? genSun(L.moon.r + 2) : genMoon(L.moon.r);
     const r = rng(42);
     this.twinkles = genTwinkles(L, r);
     this.clouds = [];
-    const nc = Math.max(3, Math.round(L.W / 90));
+    const nc = Math.max(3, Math.round(L.W / 90)) * (rain ? 3 : 1);
     for (let k = 0; k < nc; k++) {
-      const w = 28 + Math.floor(r() * 44);
-      this.clouds.push({ cv: genCloud(r, w), x: r() * (L.W + 80) - 40, y: 8 + r() * L.groundY * 0.42, sp: 0.6 + r() * 1.4 });
+      const w = rain ? 60 + Math.floor(r() * 70) : 28 + Math.floor(r() * 44);
+      const y = rain ? -6 + r() * L.groundY * 0.3 : 8 + r() * L.groundY * 0.42;
+      this.clouds.push({ cv: genCloud(r, w, rain ? PAL.cloudRain : PAL.cloud), x: r() * (L.W + 80) - 40, y, sp: (0.6 + r() * 1.4) * (rain ? 2.5 : 1) });
     }
-    this.initParticles();
+    this.fogBands =
+      this.weather === 'fog'
+        ? [
+            { cv: genFogBand(L.W, Math.round(L.H * 0.16), 3), y: L.groundY - L.H * 0.2, sp: 3, a: 0.65, k: 0.25 },
+            { cv: genFogBand(L.W, Math.round(L.H * 0.14), 9), y: L.groundY - L.H * 0.06, sp: -5, a: 0.72, k: 0.4 },
+            { cv: genFogBand(L.W, Math.round(L.H * 0.12), 17), y: L.groundY + L.H * 0.05, sp: 7, a: 0.55, k: 0.7 },
+          ]
+        : [];
+    this.initWeather();
+  }
+
+  initWeather() {
+    const L = this.L;
+    this.drops = [];
+    this.splashes = [];
+    if (this.weather !== 'rain') return;
+    const n = this.reduced ? 70 : Math.round(clamp((L.W * L.H) / 260, 120, 360));
+    for (let k = 0; k < n; k++) this.drops.push(this.spawnDrop({}, true));
+  }
+
+  spawnDrop(d, initial) {
+    const L = this.L, r = this.r;
+    d.x = r() * (L.W + 60);
+    d.y = initial ? r() * L.H : -4 - r() * 30;
+    d.v = 4.2 + r() * 2.2;
+    d.len = 3 + Math.floor(r() * 3);
+    d.land = L.groundY + r() * (L.H - L.groundY);
+    d.a = 0.35 + r() * 0.35;
+    return d;
+  }
+
+  // přepnutí den/noc a počasí s plynulým prolnutím
+  setTheme(time, weather) {
+    if (time === this.time && weather === this.weather) return;
+    if (this.L) {
+      const snap = document.createElement('canvas');
+      snap.width = this.cv.width;
+      snap.height = this.cv.height;
+      snap.getContext('2d').drawImage(this.cv, 0, 0);
+      this.fade = { cv: snap, t: 0 };
+    }
+    const timeChanged = time !== this.time;
+    this.time = time;
+    this.weather = weather;
+    if (!this.L) return;
+    if (timeChanged) this.build(this.L);
+    else this.buildSky();
   }
 
   initParticles() {
@@ -749,8 +918,8 @@ export class Scene {
       this.spawnPetal(p, true);
       this.petals.push(p);
     }
-    // světlušky
-    const nf = this.reduced ? 5 : Math.round(clamp(L.W / 26, 8, 20));
+    // světlušky (jen v noci)
+    const nf = this.time !== 'night' ? 0 : this.reduced ? 5 : Math.round(clamp(L.W / 26, 8, 20));
     this.flies = [];
     for (let k = 0; k < nf; k++) {
       this.flies.push({
@@ -766,7 +935,10 @@ export class Scene {
   setReduced(v) {
     if (this.reduced === v) return;
     this.reduced = v;
-    if (this.L) this.initParticles();
+    if (this.L) {
+      this.initParticles();
+      this.initWeather();
+    }
   }
 
   isOverToy(cx, cy) {
@@ -978,7 +1150,9 @@ export class Scene {
     m.vy *= Math.pow(0.02, dt);
 
     // vítr
-    const wind = -0.18 + Math.sin(t * 0.23) * 0.12 + Math.sin(t * 0.07 + 2) * 0.1;
+    const rain = this.weather === 'rain';
+    const wind = -0.18 + Math.sin(t * 0.23) * 0.12 + Math.sin(t * 0.07 + 2) * 0.1 - (rain ? 0.25 : 0);
+    const fallK = rain ? 2.6 : 1;
     for (const p of this.petals) {
       if (p.life >= 0) {
         p.life -= dt;
@@ -987,7 +1161,7 @@ export class Scene {
       }
       const sway = Math.sin(t * p.fr + p.ph);
       p.vx += (wind + sway * 0.18 - p.vx) * 0.02 * k60;
-      p.vy += (p.fall + Math.cos(t * p.fr + p.ph) * 0.06 - p.vy) * 0.03 * k60;
+      p.vy += (p.fall * fallK + Math.cos(t * p.fr + p.ph) * 0.06 - p.vy) * 0.03 * k60;
       if (m.inside) {
         const dx = p.x - m.x, dy = p.y - m.y;
         const d2 = dx * dx + dy * dy;
@@ -1025,6 +1199,38 @@ export class Scene {
       if (f.x > L.W + 4) f.a = Math.PI;
     }
 
+    // déšť
+    if (rain) {
+      for (const d of this.drops) {
+        d.x += (wind * 4 - 0.6) * k60 * 0.35;
+        d.y += d.v * k60;
+        if (d.y >= d.land) {
+          if (!this.reduced && this.r() < 0.6) this.splashes.push({ x: d.x, y: d.land, life: 0 });
+          this.spawnDrop(d, false);
+        } else if (d.x < -10) d.x += L.W + 40;
+      }
+      for (const sp of this.splashes) sp.life += dt;
+      this.splashes = this.splashes.filter((sp) => sp.life < 0.16);
+      // blesky (hlavně v noci)
+      this.nextFlash -= dt;
+      if (this.nextFlash <= 0 && !this.reduced) {
+        this.flash = 1;
+        this.nextFlash = 7 + this.r() * 14;
+        this.flash2 = 0.18;
+      }
+    }
+    if (this.flash > 0) {
+      this.flash = Math.max(0, this.flash - dt * 3.2);
+      if (this.flash2 > 0) {
+        this.flash2 -= dt;
+        if (this.flash2 <= 0) this.flash = Math.max(this.flash, 0.7);
+      }
+    }
+    if (this.fade) {
+      this.fade.t += dt;
+      if (this.fade.t > 0.9) this.fade = null;
+    }
+
     // mraky
     for (const c of this.clouds) {
       c.x += c.sp * dt * 1.2;
@@ -1056,9 +1262,9 @@ export class Scene {
     }
     fx.zs = fx.zs.filter((z) => z.life < 2.4);
 
-    // padající hvězda
+    // padající hvězda (jen za jasné noci)
     fx.nextShoot -= dt;
-    if (!this.reduced && fx.nextShoot <= 0 && !fx.shoot) {
+    if (!this.reduced && fx.nextShoot <= 0 && !fx.shoot && this.time === 'night' && this.weather === 'clear') {
       fx.shoot = { x: L.W * (0.35 + this.r() * 0.6), y: 4 + this.r() * L.groundY * 0.25, vx: -2.6 - this.r(), vy: 1.1 + this.r() * 0.5, life: 0 };
       fx.nextShoot = 9 + this.r() * 14;
     }
@@ -1162,10 +1368,26 @@ export class Scene {
     ctx.globalAlpha = 1;
     ctx.clearRect(0, 0, W, H);
 
+    const night = this.time === 'night';
+    const rain = this.weather === 'rain', fog = this.weather === 'fog';
+    const fogCol = `${PAL.fog[0]},${PAL.fog[1]},${PAL.fog[2]}`;
+    const veil = (a) => {
+      ctx.fillStyle = `rgba(${fogCol},${a})`;
+      ctx.fillRect(0, 0, W, H);
+    };
+    const band = (b) => {
+      const bw = b.cv.width;
+      const x0 = Math.round((((t * b.sp - par.x * b.k * 10) % bw) + bw) % bw) - bw;
+      ctx.globalAlpha = b.a;
+      for (let x = x0; x < W; x += bw) ctx.drawImage(b.cv, x, Math.round(b.y - par.y * b.k * 5));
+      ctx.globalAlpha = 1;
+    };
+
     ctx.drawImage(this.sky, 0, 0);
     // třpytivé hvězdy
-    for (const s of this.twinkles) {
-      const a = 0.5 + 0.5 * Math.sin(t * s.sp + s.ph);
+    const twK = night && !rain ? (fog ? 0.35 : 1) : 0;
+    for (const s of twK ? this.twinkles : []) {
+      const a = (0.5 + 0.5 * Math.sin(t * s.sp + s.ph)) * twK;
       if (a < 0.15) continue;
       ctx.fillStyle = `rgba(255,248,255,${a.toFixed(2)})`;
       ctx.fillRect(s.x, s.y, 1, 1);
@@ -1186,27 +1408,33 @@ export class Scene {
         ctx.fillRect(Math.round(sh.x - sh.vx * k * 0.5), Math.round(sh.y - sh.vy * k * 0.5), 1, 1);
       }
     }
-    // měsíc
+    // měsíc / slunce (v dešti schované za mraky)
     const [mox, moy] = off(0.05);
     const mx = L.moon.x + mox + M, my = L.moon.y + moy + M;
-    ctx.drawImage(this.moonCv, mx - L.moon.r - 1, my - L.moon.r - 1);
+    const mh = (this.moonCv.width - 1) / 2;
+    if (!rain) ctx.drawImage(this.moonCv, Math.round(mx - mh), Math.round(my - mh));
     // mraky
     const [cox] = off(0.08);
     for (const c of this.clouds) ctx.drawImage(c.cv, Math.round(c.x + cox + M), Math.round(c.y));
 
     let [ox, oy] = off(0.15);
     ctx.drawImage(this.far, ox, oy);
+    if (fog) veil(0.5);
     [ox, oy] = off(0.25);
     ctx.drawImage(this.hills, ox, oy);
+    if (fog) {
+      veil(0.34);
+      band(this.fogBands[0]);
+    }
 
-    // paprsky měsíčního světla
+    // paprsky měsíčního / slunečního světla
     ctx.globalCompositeOperation = 'lighter';
-    for (let k = 0; k < 6; k++) {
+    for (let k = 0; k < (rain ? 0 : 6); k++) {
       const ang = Math.PI / 2 + (k - 2.5) * 0.28 + Math.sin(t * 0.1 + k) * 0.03;
       const wdt = 0.035 + (k % 3) * 0.015;
       const a = 0.028 + 0.018 * Math.sin(t * 0.4 + k * 1.7);
       const len = H * 1.4;
-      ctx.fillStyle = `rgba(255,205,235,${a.toFixed(3)})`;
+      ctx.fillStyle = night ? `rgba(255,205,235,${a.toFixed(3)})` : `rgba(255,246,215,${(a * 0.9).toFixed(3)})`;
       ctx.beginPath();
       ctx.moveTo(mx, my);
       ctx.lineTo(mx + Math.cos(ang - wdt) * len, my + Math.sin(ang - wdt) * len);
@@ -1217,6 +1445,10 @@ export class Scene {
 
     const [mdx, mdy] = off(0.4);
     ctx.drawImage(this.mid, mdx, mdy);
+    if (fog) {
+      veil(0.28);
+      band(this.fogBands[1]);
+    }
     const [nx, ny] = off(0.7);
     ctx.drawImage(this.near, nx, ny);
     const nox = nx + M, noy = ny + M;
@@ -1232,7 +1464,7 @@ export class Scene {
       ctx.fillStyle = '#1a1015';
       for (let k = 0; k <= h.len; k++) ctx.fillRect(Math.round(bx + Math.sin(sw) * k), Math.round(by + Math.cos(sw) * k), 1, 1);
       this.drawChochin(ctx, ex, ey + 1);
-      hangLights.push({ x: ex, y: ey + 5, r: 22, col: 'warm', a: 0.6, core: 3, flicker: true, abs: true });
+      hangLights.push({ x: ex, y: ey + 5, r: 22, col: 'warm', a: 0.6, core: 3, flicker: true });
     }
 
     // panda
@@ -1257,8 +1489,20 @@ export class Scene {
     }
     ctx.globalAlpha = 1;
 
+    // počasí přes krajinu (světla pak prosvítají)
+    if (fog) {
+      veil(0.12);
+      band(this.fogBands[2]);
+    }
+    if (rain) {
+      ctx.fillStyle = night ? 'rgba(8,10,26,0.3)' : 'rgba(46,56,76,0.22)';
+      ctx.fillRect(0, 0, W, H);
+    }
+
     // světla (pixelové záře)
     ctx.globalCompositeOperation = 'lighter';
+    const lk = PAL.lightK * (rain && night ? 1.1 : 1);
+    const rk = fog ? 1.3 : 1;
     const allLights = [];
     const [mlx, mly] = off(0.4);
     for (const l of this.lights) {
@@ -1268,14 +1512,15 @@ export class Scene {
     }
     allLights.push(...hangLights);
     for (const l of allLights) {
-      let a = l.a;
+      let a = l.a * lk;
       if (l.flicker && !this.reduced) a *= 0.82 + 0.1 * Math.sin(t * 9 + l.x) + 0.08 * Math.sin(t * 23 + l.y);
-      const spr = haloSprite(Math.round(l.r), LIGHT_COL[l.col]);
+      const lr = Math.round(l.r * rk);
+      const spr = haloSprite(lr, LIGHT_COL[l.col]);
       ctx.globalAlpha = clamp(a, 0, 1);
-      ctx.drawImage(spr, Math.round(l.x - l.r), Math.round(l.y - l.r));
+      ctx.drawImage(spr, Math.round(l.x - lr), Math.round(l.y - lr));
     }
-    // světlušky
-    for (const f of this.flies) {
+    // světlušky (v dešti se schovají)
+    for (const f of rain ? [] : this.flies) {
       const g = 0.5 + 0.5 * Math.sin(t * 2.2 + f.ph);
       ctx.globalAlpha = 0.25 + g * 0.5;
       const spr = haloSprite(5, LIGHT_COL.fly);
@@ -1287,7 +1532,7 @@ export class Scene {
     // světlo kurzoru
     const m = this.mouse;
     if (m.inside && !this.reduced) {
-      ctx.globalAlpha = 0.32;
+      ctx.globalAlpha = night ? 0.32 : 0.12;
       const spr = haloSprite(26, LIGHT_COL.pink);
       ctx.drawImage(spr, Math.round(m.x) - 26, Math.round(m.y) - 26);
     }
@@ -1298,29 +1543,57 @@ export class Scene {
     const [fox, foy] = off(1.1);
     ctx.drawImage(this.front, fox, foy);
 
+    if (rain) this.drawRain(ctx, night);
+    if (this.flash > 0) {
+      ctx.fillStyle = `rgba(225,230,255,${(this.flash * (night ? 0.42 : 0.25)).toFixed(3)})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
     this.drawFx(ctx);
-    this.drawBloom(allLights, mx, my);
+    if (this.fade) {
+      ctx.globalAlpha = clamp(1 - this.fade.t / 0.9, 0, 1);
+      ctx.drawImage(this.fade.cv, 0, 0);
+      ctx.globalAlpha = 1;
+    }
+    this.drawBloom(allLights, mx, my, lk);
+  }
+
+  drawRain(ctx, night) {
+    const col = night ? '205,215,255' : '235,242,255';
+    for (const d of this.drops) {
+      ctx.fillStyle = `rgba(${col},${d.a.toFixed(2)})`;
+      const x = Math.round(d.x), y = Math.round(d.y);
+      for (let j = 0; j < d.len; j++) ctx.fillRect(x + Math.round(j * 0.35), y - j, 1, 1);
+    }
+    ctx.fillStyle = `rgba(${col},0.6)`;
+    for (const sp of this.splashes) {
+      const k = sp.life < 0.08 ? 1 : 2;
+      const x = Math.round(sp.x), y = Math.round(sp.y);
+      ctx.fillRect(x - k, y - 1, 1, 1);
+      ctx.fillRect(x + k, y - 1, 1, 1);
+    }
   }
 
   drawChochin(ctx, x, y) {
     // papírová lucerna 5×7
+    const [cap, body, mid, hi, rib, tassel] = PAL.chochin;
     const rows = [
-      [0, 1, '#2a1616'],
-      [1, 2, '#d8452f'],
-      [2, 2, '#ff8a4f'],
-      [3, 2, '#ffb36a'],
-      [4, 2, '#ff8a4f'],
-      [5, 2, '#d8452f'],
-      [6, 1, '#2a1616'],
+      [0, 1, cap],
+      [1, 2, body],
+      [2, 2, mid],
+      [3, 2, hi],
+      [4, 2, mid],
+      [5, 2, body],
+      [6, 1, cap],
     ];
     for (const [dy, hw, c] of rows) {
       ctx.fillStyle = c;
       ctx.fillRect(x - hw, y + dy, hw * 2 + 1, 1);
     }
-    ctx.fillStyle = '#9e2a1e';
+    ctx.fillStyle = rib;
     ctx.fillRect(x - 2, y + 2, 1, 3);
     ctx.fillRect(x + 2, y + 2, 1, 3);
-    ctx.fillStyle = '#ffd24a';
+    ctx.fillStyle = tassel;
     ctx.fillRect(x, y + 7, 1, 2);
   }
 
@@ -1397,24 +1670,33 @@ export class Scene {
     ctx.globalAlpha = 1;
   }
 
-  drawBloom(lights, mx, my) {
+  drawBloom(lights, mx, my, lk = 1) {
     const b = this.bctx, L = this.L, t = this.t;
+    const night = this.time === 'night';
     b.globalCompositeOperation = 'source-over';
     b.clearRect(0, 0, L.W, L.H);
     b.globalCompositeOperation = 'lighter';
-    // měsíc
-    b.globalAlpha = 0.75;
-    b.fillStyle = '#ffe6cc';
-    b.beginPath();
-    b.arc(mx, my, L.moon.r + 1, 0, Math.PI * 2);
-    b.fill();
-    b.globalAlpha = 0.18;
-    b.fillStyle = '#ff9fd0';
-    b.beginPath();
-    b.arc(mx, my, L.moon.r * 2.6, 0, Math.PI * 2);
-    b.fill();
+    // měsíc / slunce
+    if (this.weather !== 'rain') {
+      const dim = this.weather === 'fog' ? 0.55 : 1;
+      b.globalAlpha = (night ? 0.75 : 0.95) * dim;
+      b.fillStyle = night ? '#ffe6cc' : '#fff6d8';
+      b.beginPath();
+      b.arc(mx, my, L.moon.r + (night ? 1 : 3), 0, Math.PI * 2);
+      b.fill();
+      b.globalAlpha = (night ? 0.18 : 0.3) * dim;
+      b.fillStyle = night ? '#ff9fd0' : '#ffe7a8';
+      b.beginPath();
+      b.arc(mx, my, L.moon.r * (night ? 2.6 : 3.4), 0, Math.PI * 2);
+      b.fill();
+    }
+    if (this.flash > 0) {
+      b.globalAlpha = this.flash * 0.35;
+      b.fillStyle = '#dfe4ff';
+      b.fillRect(0, 0, L.W, L.H * 0.5);
+    }
     for (const l of lights) {
-      let a = l.a;
+      let a = l.a * lk;
       if (l.flicker && !this.reduced) a *= 0.8 + 0.2 * Math.sin(t * 11 + l.x);
       b.globalAlpha = clamp(a, 0, 1);
       b.fillStyle = CORE_COL[l.col];
@@ -1426,7 +1708,7 @@ export class Scene {
       b.arc(l.x, l.y, l.r * 0.45, 0, Math.PI * 2);
       b.fill();
     }
-    for (const f of this.flies) {
+    for (const f of this.weather === 'rain' ? [] : this.flies) {
       b.globalAlpha = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * 2.2 + f.ph));
       b.fillStyle = '#dcff8a';
       b.fillRect(Math.round(f.x) - 1, Math.round(f.y) - 1, 3, 3);

@@ -147,6 +147,12 @@ body.fx-off #bloom {
     radial-gradient(120% 90% at 62% 42%, rgba(0, 0, 0, 0) 55%, rgba(6, 3, 16, 0.55) 100%);
 }
 
+body.day .shade {
+  background:
+    linear-gradient(90deg, rgba(18, 22, 58, 0.4) 0%, rgba(18, 22, 58, 0.16) 28%, rgba(18, 22, 58, 0) 48%),
+    radial-gradient(120% 90% at 62% 42%, rgba(0, 0, 0, 0) 60%, rgba(10, 18, 40, 0.22) 100%);
+}
+
 /* ---------- Bublina pandy ---------- */
 .bubble {
   position: fixed;
@@ -580,6 +586,10 @@ body.fx-off #bloom {
 .toy-btn[hidden] {
   display: none;
 }
+.ico-slot {
+  display: inline-flex;
+  flex: none;
+}
 .toy-btn svg {
   width: 30px;
   height: 30px;
@@ -767,7 +777,8 @@ body.grabbing * {
     height: 48vh;
     height: 48svh;
   }
-  .shade {
+  .shade,
+  body.day .shade {
     background: linear-gradient(180deg, rgba(8, 5, 22, 0.45) 0%, rgba(8, 5, 22, 0.2) 55%, rgba(8, 5, 22, 0) 70%);
   }
   .profile {
@@ -792,7 +803,7 @@ body.grabbing * {
   .toy-btn {
     padding: 8px;
   }
-  .toy-btn span {
+  .toy-btn .lbl {
     position: absolute;
     width: 1px;
     height: 1px;
