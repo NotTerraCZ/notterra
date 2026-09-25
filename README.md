@@ -1,6 +1,6 @@
 # NotTerra 🌸
 
-Osobní web s odkazy – noční pixel-art scéna se starou japonskou pagodou, horou Fuji,
+Osobní web s odkazy (v angličtině) – noční pixel-art scéna se starou japonskou pagodou, horou Fuji,
 kvetoucí sakurou, lucernami a animovanou červenou pandou.
 
 - Celá scéna se kreslí v prohlížeči (canvas), žádné velké obrázky → rychlé načtení.
@@ -8,7 +8,7 @@ kvetoucí sakurou, lucernami a animovanou červenou pandou.
   Když se dlouho nic neděje, usne 💤.
 - Efekty myši: světlo a jiskry za kurzorem, lístky sakury uhýbají pohybu myši,
   klik do scény vyfoukne lístky, světlušky letí za kurzorem, paralaxa vrstev, náklon karet.
-- Tlačítko „efekty" v patičce vypne náročnější efekty (pro slabší zařízení).
+- Tlačítko „effects" v patičce vypne náročnější efekty (pro slabší zařízení).
   Respektuje i systémové nastavení „omezit pohyb".
 
 ## Struktura

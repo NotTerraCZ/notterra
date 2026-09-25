@@ -15,22 +15,23 @@ try {
 const bubble = $('#bubble');
 const bubbleText = bubble.querySelector('.bubble-in');
 const touch = matchMedia('(hover: none)').matches;
-const pet = touch ? 'Ťukni na mě! 🐾' : 'Pohlaď mě myší… 🐾';
+const pet = touch ? 'Tap me! 🐾' : 'Pet me with your mouse… 🐾';
 const LINES = {
-  hello: ['Ahoj! Vítej u NotTerry 🌸', 'Čau! Vítej 🌸'],
+  hello: ['Hi! Welcome to NotTerra 🌸', 'Hey there! Welcome 🌸'],
   idle: [
-    'Mrkni na můj YouTube! 🎬',
-    'Přidej se na Slime SMP! 🟩',
+    'Check out my YouTube! 🎬',
+    'Join Slime SMP! 🟩',
     pet,
-    'Sakury dneska krásně voní 🌸',
-    'Mňam… bambus by bodl 🎋',
-    'Klikni na mě! ✨',
-    'Zkus kliknout do nebe ✨',
-    'Hry najdeš na itch.io 🎮',
-    'Uvidíme se na Discordu! 💬',
+    'The sakura smell lovely tonight 🌸',
+    'Mmm… some bamboo would be nice 🎋',
+    'Click me! ✨',
+    'Try clicking the sky ✨',
+    'My games are on itch.io 🎮',
+    'Add me on Steam! 🕹️',
+    'See you on Discord! 💬',
   ],
-  boop: ['Hehe! 💕', 'To lechtá! 😆', 'Ještě! ✨', 'Boop! 🐾', 'Jsi super! 💖'],
-  wake: ['Hm?! Už jsem vzhůru! 👀', 'Jééé, návštěva! 🌸'],
+  boop: ['Hehe! 💕', 'That tickles! 😆', 'Again! ✨', 'Boop! 🐾', "You're awesome! 💖"],
+  wake: ["Huh?! I'm awake! 👀", 'Yay, a visitor! 🌸'],
   sleep: ['Zzz… 💤'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -63,7 +64,7 @@ function setFx(on) {
   fxOn = on;
   document.body.classList.toggle('fx-off', !on);
   const btn = $('#fx-toggle');
-  btn.textContent = on ? '✿ efekty: zap' : '✿ efekty: vyp';
+  btn.textContent = on ? '✿ effects: on' : '✿ effects: off';
   btn.setAttribute('aria-pressed', String(on));
   scene.setReduced(!on);
 }

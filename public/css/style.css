@@ -403,6 +403,7 @@ body.fx-off #bloom {
   margin: 0;
   padding: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
@@ -597,6 +598,87 @@ body.fx-off #bloom {
 @media (min-width: 3000px) and (min-height: 1700px) {
   .page {
     --z: 1.8;
+  }
+}
+
+/* ---------- Nižší obrazovky (notebooky): zhustit panel ---------- */
+@media (min-width: 761px) and (max-height: 960px) {
+  .page {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  .panel {
+    gap: 14px;
+  }
+  .profile {
+    padding: 16px 20px;
+    gap: 18px;
+  }
+  .avatar {
+    --s: 100px;
+  }
+  .name {
+    font-size: 40px;
+  }
+  .bio {
+    margin-top: 6px;
+  }
+  .links {
+    padding: 14px 16px 16px;
+  }
+  .links h2 {
+    margin-bottom: 10px;
+    font-size: 22px;
+  }
+  .links ul {
+    gap: 7px;
+  }
+  .link {
+    padding: 7px 12px 7px 8px;
+  }
+  .ico {
+    width: 40px;
+    height: 40px;
+  }
+  .ico svg {
+    width: 22px;
+    height: 22px;
+  }
+  .ico.pixel svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+@media (min-width: 761px) and (max-height: 800px) {
+  .avatar {
+    --s: 86px;
+  }
+  .name {
+    font-size: 34px;
+  }
+  .hello,
+  .kana {
+    font-size: 13px;
+  }
+  .kana {
+    margin-top: 3px;
+  }
+  .bio {
+    font-size: 15px;
+  }
+  .link {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .ico {
+    width: 36px;
+    height: 36px;
+  }
+  .txt strong {
+    font-size: 16px;
+  }
+  .txt .url {
+    font-size: 14px;
   }
 }
 
