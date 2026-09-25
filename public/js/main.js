@@ -91,8 +91,17 @@ addEventListener(
 );
 addEventListener('pointerdown', (e) => {
   if (isUi(e.target)) return;
-  if (scene.click(e.clientX, e.clientY) === 'ball') document.body.classList.add('grabbing');
+  // klik do scény nesmí začít označovat text ani tahat obrázky
+  if (e.pointerType === 'mouse') e.preventDefault();
+  if (scene.click(e.clientX, e.clientY) === 'ball') {
+    document.body.classList.add('grabbing');
+    window.getSelection()?.removeAllRanges();
+  }
 });
+addEventListener('selectstart', (e) => {
+  if (document.body.classList.contains('grabbing')) e.preventDefault();
+});
+addEventListener('dragstart', (e) => e.preventDefault());
 const release = (e) => {
   scene.pointerUp();
   document.body.classList.remove('grabbing');

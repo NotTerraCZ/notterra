@@ -89,6 +89,20 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   cursor: url('../assets/cursor.png') 1 1, auto;
+  /* ochrana proti označování textu při hraní s míčkem / klikání do scény */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg,
+canvas,
+a {
+  -webkit-user-drag: none;
+}
+canvas {
+  -webkit-touch-callout: none;
 }
 
 body.over-panda {
