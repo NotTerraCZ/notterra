@@ -32,6 +32,7 @@ const LINES = {
   ],
   boop: ['Hehe! 💕', 'That tickles! 😆', 'Again! ✨', 'Boop! 🐾', "You're awesome! 💖"],
   wake: ["Huh?! I'm awake! 👀", 'Yay, a visitor! 🌸'],
+  ball: ['Boing! 🏐', 'Nice throw! ✨', 'Hey! 😆', 'Again, again! 🐾', 'My head! 😵'],
   sleep: ['Zzz… 💤'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -57,6 +58,7 @@ const scene = new Scene($('#scene'), $('#bloom'), {
     if (ev === 'boop') say(pick(LINES.boop), 1600);
     else if (ev === 'wake') say(pick(LINES.wake), 2200);
     else if (ev === 'sleep') say(LINES.sleep[0], 2000);
+    else if (ev === 'ball' && performance.now() - lastSay > 2500) say(pick(LINES.ball), 1500);
   },
 });
 
@@ -82,25 +84,48 @@ addEventListener(
   'pointermove',
   (e) => {
     scene.pointerMove(e.clientX, e.clientY, performance.now());
-    const overPanda = !isUi(e.target) && scene.isOverPanda(e.clientX, e.clientY);
-    document.body.classList.toggle('over-panda', overPanda);
+    const overToy = !isUi(e.target) && scene.isOverToy(e.clientX, e.clientY);
+    document.body.classList.toggle('over-panda', overToy);
   },
   { passive: true }
 );
 addEventListener('pointerdown', (e) => {
   if (isUi(e.target)) return;
-  scene.click(e.clientX, e.clientY);
+  if (scene.click(e.clientX, e.clientY) === 'ball') document.body.classList.add('grabbing');
 });
-addEventListener('pointerup', (e) => {
+const release = (e) => {
+  scene.pointerUp();
+  document.body.classList.remove('grabbing');
   if (e.pointerType !== 'mouse') scene.pointerLeave();
-});
+};
+addEventListener('pointerup', release);
+addEventListener('pointercancel', release);
+// na dotykových displejích nescrollovat, když prst chytá míček
+addEventListener(
+  'touchstart',
+  (e) => {
+    const t = e.touches[0];
+    if (t && !isUi(e.target) && scene.ballAt(t.clientX, t.clientY)) e.preventDefault();
+  },
+  { passive: false }
+);
+addEventListener(
+  'touchmove',
+  (e) => {
+    if (scene.balls.held) e.preventDefault();
+  },
+  { passive: false }
+);
 document.documentElement.addEventListener('pointerleave', () => scene.pointerLeave());
 addEventListener('blur', () => scene.pointerLeave());
 
 let resizeT = 0;
 addEventListener('resize', () => {
   clearTimeout(resizeT);
-  resizeT = setTimeout(() => scene.resize(), 120);
+  resizeT = setTimeout(() => {
+    scene.resize();
+    syncWall();
+  }, 120);
 });
 
 // --- smyčka (max ~60 fps) ---
@@ -118,6 +143,28 @@ function frame(now) {
 requestAnimationFrame(frame);
 setTimeout(() => say(pick(LINES.hello), 3200), 1400);
 lastSay = performance.now();
+
+// --- míčky ---
+const ballBtn = $('#ball-btn');
+const clearBtn = $('#ball-clear');
+const syncBalls = () => {
+  clearBtn.hidden = scene.balls.count === 0;
+};
+// na desktopu se míčky nekutálí pod panel s odkazy
+const panel = $('.panel');
+const syncWall = () => {
+  const wide = innerWidth > 760;
+  scene.setBallWall(wide ? panel.getBoundingClientRect().right + 16 : 0);
+};
+syncWall();
+ballBtn.addEventListener('click', () => {
+  scene.spawnBall();
+  syncBalls();
+});
+clearBtn.addEventListener('click', () => {
+  scene.clearBalls();
+  syncBalls();
+});
 
 // --- karty: náklon a světlo za kurzorem ---
 const cards = [...document.querySelectorAll('.card')];

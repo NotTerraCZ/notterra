@@ -64,6 +64,7 @@
   --line: rgba(255, 176, 214, 0.42);
   --px: 3px;
   --font: 'Pixelify Sans', ui-monospace, 'Segoe UI', system-ui, sans-serif;
+  --z: 1;
   --jp: 'DotGothic16', 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif;
 }
 
@@ -200,7 +201,6 @@ body.fx-off #bloom {
   min-height: 100vh;
   min-height: 100svh;
   display: grid;
-  --z: 1;
   grid-template-columns: minmax(0, calc(470px * var(--z))) 1fr;
   align-items: center;
   padding: clamp(20px, 4vw, 64px) clamp(16px, 4.5vw, 80px);
@@ -362,15 +362,6 @@ body.fx-off #bloom {
   color: var(--muted);
   font-size: 15px;
   letter-spacing: 0.35em;
-}
-.bio {
-  margin: 10px 0 0;
-  color: var(--ink);
-  font-size: 16px;
-  opacity: 0.9;
-}
-.bio span {
-  color: var(--pink);
 }
 
 /* ---------- Odkazy ---------- */
@@ -538,6 +529,77 @@ body.fx-off #bloom {
   color: #fff;
 }
 
+/* ---------- Tlačítko s míčkem ---------- */
+.toys {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  zoom: var(--z);
+}
+.toy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 3px;
+  padding: 9px 16px 9px 11px;
+  border: 0;
+  font: 600 16px var(--font);
+  color: var(--ink);
+  background: rgba(22, 13, 42, 0.74);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 -3px 0 0 var(--line),
+    0 3px 0 0 var(--line),
+    -3px 0 0 0 var(--line),
+    3px 0 0 0 var(--line),
+    0 12px 30px -10px rgba(3, 0, 12, 0.8);
+  transition:
+    transform 0.15s steps(2),
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+.toy-btn[hidden] {
+  display: none;
+}
+.toy-btn svg {
+  width: 30px;
+  height: 30px;
+  flex: none;
+}
+.toy-btn:hover {
+  background-color: rgba(255, 143, 192, 0.24);
+  box-shadow:
+    0 -3px 0 0 var(--pink),
+    0 3px 0 0 var(--pink),
+    -3px 0 0 0 var(--pink),
+    3px 0 0 0 var(--pink),
+    0 0 26px -2px rgba(255, 120, 180, 0.55);
+}
+.toy-btn:hover svg {
+  animation: hop 0.5s steps(2) 1;
+}
+.toy-btn:active {
+  transform: translateY(2px);
+}
+.toy-btn:focus-visible {
+  outline: 3px dashed var(--pink-2);
+  outline-offset: 6px;
+}
+.toy-clear {
+  padding: 9px 14px;
+  font-size: 18px;
+  line-height: 30px;
+}
+body.grabbing,
+body.grabbing * {
+  cursor: url('../assets/cursor-hand.png') 11 1, grabbing !important;
+}
+
 /* ---------- Patička ---------- */
 .foot {
   display: flex;
@@ -586,17 +648,17 @@ body.fx-off #bloom {
 
 /* ---------- Velké obrazovky: zvětšit panel ---------- */
 @media (min-width: 1700px) and (min-height: 940px) {
-  .page {
+  :root {
     --z: 1.12;
   }
 }
 @media (min-width: 2200px) and (min-height: 1250px) {
-  .page {
+  :root {
     --z: 1.4;
   }
 }
 @media (min-width: 3000px) and (min-height: 1700px) {
-  .page {
+  :root {
     --z: 1.8;
   }
 }
@@ -619,9 +681,6 @@ body.fx-off #bloom {
   }
   .name {
     font-size: 40px;
-  }
-  .bio {
-    margin-top: 6px;
   }
   .links {
     padding: 14px 16px 16px;
@@ -662,9 +721,6 @@ body.fx-off #bloom {
   }
   .kana {
     margin-top: 3px;
-  }
-  .bio {
-    font-size: 15px;
   }
   .link {
     padding-top: 5px;
@@ -718,6 +774,20 @@ body.fx-off #bloom {
   }
   .link {
     gap: 12px;
+  }
+  .toy-btn {
+    padding: 8px;
+  }
+  .toy-btn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .toy-clear {
+    padding: 8px 12px;
   }
 }
 @media (max-width: 380px) {

@@ -3,6 +3,7 @@
 
 import { Pix, rng, hash2, noise1, fbm1, hex, mixc, css, bayer, clamp, lerp } from './util.js';
 import { Panda, PW, PH, AX, AY } from './panda.js';
+import { Balls } from './ball.js';
 
 const M = 12; // okraj vrstev kvůli paralaxe (v herních pixelech)
 const C = (h) => hex(h);
@@ -677,6 +678,8 @@ export class Scene {
     this.t = 0;
     this.r = rng(Date.now() & 0xffff);
     this.fx = { sparks: [], bursts: [], hearts: [], zs: [], shoot: null, nextShoot: 6 };
+    this.balls = new Balls(this);
+    this.nearOff = { x: 0, y: 0 };
     this.pstate = {
       bob: 0, tail: 0, eye: 'open', lx: 0, ly: 0, ear: '', blush: false, mouth: 'w',
       nextBlink: 2, blinkT: 0, earT: 0, nextEar: 5, jump: 0, jumpV: 0, happyT: 0, sleep: false,
@@ -766,9 +769,9 @@ export class Scene {
     if (this.L) this.initParticles();
   }
 
-  isOverPanda(cx, cy) {
+  isOverToy(cx, cy) {
     const [x, y] = this.toLogical(cx, cy);
-    return this.hitPanda(x, y);
+    return this.hitPanda(x, y) || !!this.balls.at(x - this.nearOff.x, y - this.nearOff.y, 4);
   }
 
   spawnPetal(p, initial) {
@@ -817,6 +820,7 @@ export class Scene {
     m.sx = cx / window.innerWidth;
     m.sy = cy / window.innerHeight;
     m.lastMove = now;
+    this.balls.pointer(x - this.nearOff.x, y - this.nearOff.y, m.vx, m.vy);
     if (!this.reduced && dist > 0.6) {
       const n = Math.min(3, Math.ceil(dist / 5));
       for (let k = 0; k < n; k++) this.spark(x - (m.vx * k) / n, y - (m.vy * k) / n);
@@ -840,12 +844,48 @@ export class Scene {
 
   click(cx, cy) {
     const [x, y] = this.toLogical(cx, cy);
+    if (this.balls.grab(x - this.nearOff.x, y - this.nearOff.y)) return 'ball';
     if (this.hitPanda(x, y)) {
       this.boop();
       return true;
     }
     this.burst(x, y);
     return false;
+  }
+
+  pointerUp() {
+    this.balls.release();
+  }
+
+  ballAt(cx, cy) {
+    const [x, y] = this.toLogical(cx, cy);
+    return !!this.balls.at(x - this.nearOff.x, y - this.nearOff.y, 4);
+  }
+
+  spawnBall() {
+    if (this.pstate.sleep) this.wake();
+    return this.balls.spawn();
+  }
+
+  clearBalls() {
+    this.balls.clear();
+  }
+
+  // levá hranice pro míčky v CSS px (0 = okraj obrazovky)
+  setBallWall(px) {
+    const [x] = this.toLogical(px, 0);
+    this.balls.minX = px > 0 ? Math.min(this.L.W * 0.6, x - this.nearOff.x) : 0;
+  }
+
+  // míček trefil pandu
+  pandaHit() {
+    const ps = this.pstate;
+    if (ps.sleep) this.wake();
+    ps.happyT = Math.max(ps.happyT, 0.8);
+    ps.tailSpeed = 3;
+    if (ps.jump <= 0 && this.r() < 0.5) ps.jumpV = 1.4;
+    this.heart();
+    this.onPanda('ball');
   }
 
   hitPanda(x, y) {
@@ -1030,6 +1070,7 @@ export class Scene {
       if (s.life > 0.9) fx.shoot = null;
     }
 
+    this.balls.update(dt, k60);
     this.updatePanda(dt, now);
   }
 
@@ -1090,7 +1131,12 @@ export class Scene {
     // pohled za myší
     const hx = L.panda.x, hy = L.panda.y - 36;
     let lx = 0, ly = 0;
-    if (m.inside && now - m.lastMove < 6000) {
+    const ball = ps.sleep ? null : this.balls.lookTarget();
+    if (ball) {
+      const dx = ball.x - hx, dy = ball.y - hy;
+      lx = Math.abs(dx) > 8 ? Math.sign(dx) : 0;
+      ly = dy > 16 ? 1 : dy < -20 ? -1 : 0;
+    } else if (m.inside && now - m.lastMove < 6000) {
       const dx = m.x - hx, dy = m.y - hy;
       lx = Math.abs(dx) > 10 ? Math.sign(dx) : 0;
       ly = dy > 18 ? 1 : dy < -22 ? -1 : 0;
@@ -1174,6 +1220,8 @@ export class Scene {
     const [nx, ny] = off(0.7);
     ctx.drawImage(this.near, nx, ny);
     const nox = nx + M, noy = ny + M;
+    this.nearOff.x = nox;
+    this.nearOff.y = noy;
 
     // visící lucerny
     const hangLights = [];
@@ -1188,7 +1236,9 @@ export class Scene {
     }
 
     // panda
+    this.balls.drawShadows(ctx, nox, noy);
     this.drawPanda(ctx, nox, noy);
+    this.balls.draw(ctx, nox, noy);
 
     // okvětní lístky
     for (const p of this.petals) {
